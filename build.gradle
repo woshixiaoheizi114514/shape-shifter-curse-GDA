@@ -135,6 +135,10 @@ repositories {
     }
     maven { url "https://maven.ryanliptak.com/" }
 
+    flatDir {
+        dir 'libs'
+    }
+
     mavenLocal()
 }
 
@@ -255,6 +259,7 @@ dependencies {
     // Tough as nails
     modCompileOnly "maven.modrinth:tough-as-nails:VaFrDMPi"
 
+    modImplementation 'xu_mod.FakeForgeAPI:FakeForgeAPI-1.0:1.0'
 }
 
 processResources {
