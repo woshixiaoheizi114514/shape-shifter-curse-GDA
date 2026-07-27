@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.onixary.shapeShifterCurseFabric.ShapeShifterCurseFabric;
 import net.onixary.shapeShifterCurseFabric.data.StaticParams;
+import net.onixary.shapeShifterCurseFabric.event.SSCEvent;
 import net.onixary.shapeShifterCurseFabric.networking.ModPackets;
 import net.onixary.shapeShifterCurseFabric.networking.ModPacketsS2CServer;
 import net.onixary.shapeShifterCurseFabric.player_form.IForm;
@@ -56,9 +57,12 @@ public class TransformManager {
         return data;
     }
 
-    public static void startTransform(PlayerEntity player, IForm form, @Nullable Consumer<PlayerTransformData> onTransformComplete) {
+    public static boolean startTransform(PlayerEntity player, IForm form, @Nullable Consumer<PlayerTransformData> onTransformComplete) {
         if (form.isPlayerForm(player) || !(player instanceof ServerPlayerEntity serverPlayerEntity)) {
-            return;
+            return true;
+        }
+        if (!FormUtils.isFormCanUse(player, form)) {
+            return false;
         }
         PlayerFormComponent component = PlayerFormComponent.COMPONENT.get(player);
         component.transformTargetForm = form;
@@ -76,11 +80,23 @@ public class TransformManager {
                 data.onTransformComplete = null;
             }
         }
+        return true;
     }
 
-    public static void immediatelyTransform(PlayerEntity player, IForm form) {
+    public static boolean forceTransform(PlayerEntity player, IForm form, boolean immediately) {
+        FormUtils.clearPlayerFormHistory(player);
+        if (immediately) {
+            return immediatelyTransform(player, form);
+        }
+        return startTransform(player, form, null);
+    }
+
+    public static boolean immediatelyTransform(PlayerEntity player, IForm form) {
         if (form.isPlayerForm(player) || !(player instanceof ServerPlayerEntity serverPlayerEntity)) {
-            return;
+            return true;
+        }
+        if (!FormUtils.isFormCanUse(player, form)) {
+            return false;
         }
         PlayerFormComponent component = PlayerFormComponent.COMPONENT.get(player);
         component.transformTargetForm = form;
@@ -91,16 +107,22 @@ public class TransformManager {
         data.onTransformComplete = null;
         ShapeShifterCurseFabric.ON_TRANSFORM_FORM.trigger(serverPlayerEntity, form);
         setForm(player);
+        return true;
     }
 
     private static void setForm(PlayerEntity player) {
         PlayerFormComponent component = PlayerFormComponent.COMPONENT.get(player);
         component.transformTargetForm = null;
         PlayerTransformData data = getPlayerData(player);
-        IForm form = data.transformEndForm;
+        // 最后一个参数无用 初始值由Event的Invoker设置为newForm
+        IForm form = SSCEvent.TRANSFORM_MANAGER_SET_FORM.invoker().onSetForm(player, data.transformStartForm, data.transformEndForm, null);
+        // 防止因为事件真给我传进去一个null导致崩溃
+        if (form == null) {
+            form = data.transformEndForm;
+        }
         EffectManager.clearTransformativeEffect(player);
         FormUtils._setForm(player, form);
-        FormUtils.updateFormHistory(player, data.transformStartForm, form);
+        FormUtils.updateFormHistory(player, form);
         sendClientFirstPersonReset(player);
     }
 

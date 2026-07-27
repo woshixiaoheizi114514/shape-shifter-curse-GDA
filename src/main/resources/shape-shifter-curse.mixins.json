@@ -28,11 +28,9 @@
     "SneakEdgeCheckMixin",
     "StatusEffectMixin",
     "ThrowablePotionStackMixin",
-    "accessor.ActiveTargetGoalAccessor",
     "block.PowderSnowBlockMixin",
     "block.SweetBerryBushBlockMixin",
     "integration.AppleSkin",
-    "integration.AzureLib_AzProvider",
     "integration.ToughAsNailsDrinkInWorldPacketMixin",
     "integration.ToughAsNailsTemperatureHelperImplMixin",
     "integration.ToughAsNailsThirstHandlerMixin",
@@ -76,7 +74,9 @@
     "ShearsItemMixin",
     "SmithingScreenHandlerMixin",
     "AdvancementFixMixin",
-    "mob.ScareCreeperMixin"
+    "mob.ScareCreeperMixin",
+    "mob.CatEntityMixin",
+    "mob.OcelotEntityMixin"
   ],
   "client": [
     "AdjustItemHoldFeatureRendererMixin",
@@ -92,6 +92,8 @@
     "InGameHudMixin",
     "InventoryScreenMixin",
     "KeyboardInputMixin",
+    "LongNeckArmorFeatureRendererMixin",
+    "LongNeckHeadFeatureRendererMixin",
     "MinecraftClientMixin",
     "MoonPhaseRenderMixin",
     "PlayerEntityAnimOverrideMixin",
@@ -107,7 +109,8 @@
     "CameraBobbingMixin",
     "EntityRendererMixin",
     "render.LivingEntityRendererMixin",
-    "render.PlayerEntityRendererMixin"
+    "render.PlayerEntityRendererMixin",
+    "render.AbstractClientPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

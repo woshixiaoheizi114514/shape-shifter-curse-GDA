@@ -4,10 +4,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Identifier;
 import net.onixary.shapeShifterCurseFabric.ShapeShifterCurseFabric;
 import net.onixary.shapeShifterCurseFabric.player_animation.v3.AbstractAnimStateController;
-import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateControllerDP.OneAnimController;
-import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateControllerDP.RideAnimController;
-import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateControllerDP.SwimAnimController;
-import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateControllerDP.WithSneakAnimController;
+import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateControllerDP.*;
 import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimStateEnum;
 import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimSystem;
 import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimUtils;
@@ -40,10 +37,15 @@ public class Form_Spider3 extends NormalForm {
             new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_fall"));
     public static final AnimUtils.AnimationHolderData ANIM_CLIMB =
             new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_climb"));
+    public static final AnimUtils.AnimationHolderData ANIM_CLIMB_IDLE =
+            new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_climb_idle"));
     public static final AnimUtils.AnimationHolderData ANIM_FLY =
             new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_creative_flight"));
     public static final AnimUtils.AnimationHolderData ANIM_RIDE =
             new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_ride"));
+    public static final AnimUtils.AnimationHolderData ANIM_SLEEP =
+            new AnimUtils.AnimationHolderData(ShapeShifterCurseFabric.identifier("spider_3_sleep"));
+
 
     public static final AbstractAnimStateController IDLE_CONTROLLER = 
         new WithSneakAnimController(ANIM_IDLE, ANIM_SNEAK_IDLE);
@@ -58,11 +60,13 @@ public class Form_Spider3 extends NormalForm {
     public static final AbstractAnimStateController SWIM_CONTROLLER =
             new SwimAnimController(ANIM_SWIM_IDLE, null);
     public static final AbstractAnimStateController CLIMB_CONTROLLER =
-            new OneAnimController(ANIM_CLIMB);
+            new ClimbAnimController(ANIM_CLIMB_IDLE, ANIM_CLIMB);
     public static final AbstractAnimStateController FLIGHT_CONTROLLER =
             new OneAnimController(ANIM_FLY);
     public static final AbstractAnimStateController RIDE_CONTROLLER =
             new RideAnimController(ANIM_RIDE, ANIM_RIDE);
+    public static final AbstractAnimStateController SLEEP_CONTROLLER = new OneAnimController(ANIM_SLEEP);
+
 
 
 
@@ -93,6 +97,8 @@ public class Form_Spider3 extends NormalForm {
                     return FLIGHT_CONTROLLER;
                 case ANIM_STATE_RIDE:
                     return RIDE_CONTROLLER;
+                case ANIM_STATE_SLEEP:
+                    return SLEEP_CONTROLLER;
                 default:
                     return null;
             }

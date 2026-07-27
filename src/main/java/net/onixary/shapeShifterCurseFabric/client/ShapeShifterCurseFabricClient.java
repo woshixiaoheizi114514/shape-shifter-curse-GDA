@@ -2,7 +2,6 @@ package net.onixary.shapeShifterCurseFabric.client;
 
 import io.github.apace100.apoli.ApoliClient;
 import io.github.apace100.apoli.component.PowerHolderComponent;
-import mod.azure.azurelib.rewrite.render.armor.AzArmorRendererRegistry;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -18,6 +17,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.onixary.shapeShifterCurseFabric.ShapeShifterCurseFabric;
+import net.onixary.shapeShifterCurseFabric.additional_power.AdditionalPowers;
 import net.onixary.shapeShifterCurseFabric.additional_power.CustomEdiblePower;
 import net.onixary.shapeShifterCurseFabric.additional_power.ItemStorePower;
 import net.onixary.shapeShifterCurseFabric.additional_power.LevitatePower;
@@ -31,9 +31,6 @@ import net.onixary.shapeShifterCurseFabric.form_giving_custom_entity.axolotl.TAx
 import net.onixary.shapeShifterCurseFabric.form_giving_custom_entity.bat.BatEntityRenderer;
 import net.onixary.shapeShifterCurseFabric.form_giving_custom_entity.ocelot.TOcelotEntityRenderer;
 import net.onixary.shapeShifterCurseFabric.form_giving_custom_entity.spider.TSpiderEntityRenderer;
-import net.onixary.shapeShifterCurseFabric.items.RegCustomItem;
-import net.onixary.shapeShifterCurseFabric.items.armors.MorphscaleArmorRenderer;
-import net.onixary.shapeShifterCurseFabric.items.armors.NetheriteMorphscaleArmorRenderer;
 import net.onixary.shapeShifterCurseFabric.mana.ManaRegistriesClient;
 import net.onixary.shapeShifterCurseFabric.mana.ManaUtils;
 import net.onixary.shapeShifterCurseFabric.minion.MinionRegisterClient;
@@ -44,6 +41,7 @@ import net.onixary.shapeShifterCurseFabric.player_form.utils.TransformManager;
 import net.onixary.shapeShifterCurseFabric.render.form_render.FormRenderUtils;
 import net.onixary.shapeShifterCurseFabric.render.render_layer.FurGradientRenderLayer;
 import net.onixary.shapeShifterCurseFabric.util.*;
+import net.onixary.shapeShifterCurseFabric.util.Verify.AuthClient;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.HashMap;
@@ -64,13 +62,15 @@ public class ShapeShifterCurseFabricClient implements ClientModInitializer {
 	}
 	private static ShaderProgram furGradientShader;
 
-	public static KeyBinding toggleClipAtLedge;
 	public static KeyBinding makeSound;
 	public static KeyBinding useActiveSkill1PowerKeybind;
 	public static KeyBinding useActiveSkill2PowerKeybind;
+	public static KeyBinding useActiveSkill3PowerKeybind;
+	public static KeyBinding useActiveSkill4PowerKeybind;
+	public static KeyBinding useActiveSkill5PowerKeybind;
+	public static KeyBinding useActiveSkill6PowerKeybind;
 
-	private static boolean toggleClipAtLedgeIsPressed = false;
-	public static boolean isClipAtLedge = true;
+	public static boolean isBlockingClipAtLedge = false;
 
 	public static void openBookScreen(PlayerEntity user) {
 		if (!(MinecraftClient.getInstance().currentScreen instanceof BookOfShapeShifterScreenV2_P1)) {
@@ -97,22 +97,6 @@ public class ShapeShifterCurseFabricClient implements ClientModInitializer {
 		MinionRegisterClient.registerClient();
 	}
 
-    public static void registerAzureArmorGeo(){
-        AzArmorRendererRegistry.register(
-                MorphscaleArmorRenderer::new,
-                RegCustomItem.MORPHSCALE_HEADRING,
-                RegCustomItem.MORPHSCALE_VEST,
-                RegCustomItem.MORPHSCALE_CUISH,
-                RegCustomItem.MORPHSCALE_ANKLET
-        );
-		AzArmorRendererRegistry.register(
-				NetheriteMorphscaleArmorRenderer::new,
-				RegCustomItem.NETHERITE_MORPHSCALE_HEADRING,
-				RegCustomItem.NETHERITE_MORPHSCALE_VEST,
-				RegCustomItem.NETHERITE_MORPHSCALE_CUISH,
-				RegCustomItem.NETHERITE_MORPHSCALE_ANKLET
-		);
-    }
 
 	private static void onClientTick(MinecraftClient minecraftClient){
 		TickManager.tickClientAll();
@@ -244,7 +228,6 @@ public class ShapeShifterCurseFabricClient implements ClientModInitializer {
 
 		registerShaderResource();
 		FurGradientRenderLayer.onInitializeClient();
-        registerAzureArmorGeo();
 
 		ManaRegistriesClient.register();
 		RegCustomEntityRenderer.init();
@@ -274,33 +257,55 @@ public class ShapeShifterCurseFabricClient implements ClientModInitializer {
 		makeSound = new KeyBinding("key.shape-shifter-curse.make_sound", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_GRAVE_ACCENT, "category." + MOD_ID);
 		ApoliClient.registerPowerKeybinding("make_sound", makeSound);
 		KeyBindingHelper.registerKeyBinding(makeSound);
-		toggleClipAtLedge = new KeyBinding("key.shape-shifter-curse.toggle_clip_at_ledge", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + MOD_ID);
-		KeyBindingHelper.registerKeyBinding(toggleClipAtLedge);
 
-		// 后续可拓展到多技能按键 等超出4个后我整个轮盘或其他减少需求按键的功能
+		// 4个技能按键基本够用了 一般Mod的常用技能一般也是4个 后续如果还要加按键 可以做成轮盘(应该可以虚拟触发按键 反正只用触发Apoli的就行)等压缩按键形式 然后这些按键可以当做快捷触发键使用
+		// 绑定顺序
+		// 主动常用技能 1->2->3->4
+		// 类似大招技能 3->4->2->1
+		// 打开菜单 5->6
+		// 切换能力 6->5
+		// 这2个分配给常用技能 一般推荐绑鼠标侧键上
 		useActiveSkill1PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_1", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
 		useActiveSkill2PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_2", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
+		// 这2个介于常用和非常用之间 尽量别放类似火球这种能力 如果鼠标侧键多也可以绑侧键上
+		useActiveSkill3PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_3", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
+		useActiveSkill4PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_4", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
+		// 这2个给打开UI/可切换功能使用 不推荐给主动能力用 当然 你要是加个自爆技能也能绑这2个按键 推荐绑键盘不太常按的按键上
+		useActiveSkill5PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_5", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
+		useActiveSkill6PowerKeybind = new KeyBinding("key.shape-shifter-curse.active_skill_6", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "category." + ShapeShifterCurseFabric.MOD_ID);
 		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_1", useActiveSkill1PowerKeybind);
 		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_2", useActiveSkill2PowerKeybind);
+		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_3", useActiveSkill3PowerKeybind);
+		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_4", useActiveSkill4PowerKeybind);
+		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_5", useActiveSkill5PowerKeybind);
+		ApoliClient.registerPowerKeybinding("key.shape-shifter-curse.active_skill_6", useActiveSkill6PowerKeybind);
 		KeyBindingHelper.registerKeyBinding(useActiveSkill1PowerKeybind);
 		KeyBindingHelper.registerKeyBinding(useActiveSkill2PowerKeybind);
+		KeyBindingHelper.registerKeyBinding(useActiveSkill3PowerKeybind);
+		KeyBindingHelper.registerKeyBinding(useActiveSkill4PowerKeybind);
+		KeyBindingHelper.registerKeyBinding(useActiveSkill5PowerKeybind);
+		KeyBindingHelper.registerKeyBinding(useActiveSkill6PowerKeybind);
 
 		ClientTickEvents.END_CLIENT_TICK.register((client) -> {
-			if (toggleClipAtLedge.isPressed()) {
-				if (!toggleClipAtLedgeIsPressed) {
-					isClipAtLedge = !isClipAtLedge;
-                    if (client.player != null) {
-                        client.player.sendMessage(Text.translatable("message.shape-shifter-curse.clip_at_ledge." + (isClipAtLedge ? "on" : "off")), true);
-                    }
+			if (client.player == null) {
+				return;
+			}
+			if (AdditionalPowers.TOGGLE_CLIP_AT_LEDGE.isActive(client.player)) {
+				if (!isBlockingClipAtLedge) {
+					isBlockingClipAtLedge = true;
+					client.player.sendMessage(Text.translatable("message.shape-shifter-curse.clip_at_ledge.off"), true);
 				}
-				toggleClipAtLedgeIsPressed = true;
 			} else {
-				toggleClipAtLedgeIsPressed = false;
+				if (isBlockingClipAtLedge) {
+					isBlockingClipAtLedge = false;
+					client.player.sendMessage(Text.translatable("message.shape-shifter-curse.clip_at_ledge.on"), true);
+				}
 			}
 		});
 
 		RegCustomBlock.ClientInit();
 		PatronUtils.OnClientInit();
+		AuthClient.init();
 	}
 
 	public static ShaderProgram getFurGradientShader() {
