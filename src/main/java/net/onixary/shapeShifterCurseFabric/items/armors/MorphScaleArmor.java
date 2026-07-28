@@ -1,6 +1,5 @@
 package net.onixary.shapeShifterCurseFabric.items.armors;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.EquipmentSlot;
@@ -10,8 +9,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.RenderProvider;
@@ -43,22 +40,6 @@ public class MorphScaleArmor extends ArmorItem implements GeoItem {
             renderProvider = GeoItem.makeRenderer(this);
         }
         return this.renderProvider;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<MorphScaleArmor> renderer;
-
-            @Override
-            public @NotNull GeoArmorRenderer<MorphScaleArmor> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, BipedEntityModel<?> original) {
-                if(this.renderer == null) {
-                    this.renderer = new MorphscaleArmorRenderer();
-                }
-                this.renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
-                return this.renderer;
-            }
-        });
     }
 
     @Override

@@ -10,8 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
-import net.minecraftforge.client.extensions.common.IClientItemExtensions;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoItem;
 import software.bernie.geckolib.animatable.client.RenderProvider;
@@ -44,22 +42,6 @@ public class NetheriteMorphScaleArmor extends ArmorItem implements GeoItem {
             renderProvider = GeoItem.makeRenderer(this);
         }
         return this.renderProvider;
-    }
-
-    @Override
-    public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-        consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<NetheriteMorphScaleArmor> renderer;
-
-            @Override
-            public @NotNull GeoArmorRenderer<NetheriteMorphScaleArmor> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, BipedEntityModel<?> original) {
-                if(this.renderer == null) {
-                    this.renderer = new NetheriteMorphscaleArmorRenderer();
-                }
-                this.renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
-                return this.renderer;
-            }
-        });
     }
 
     @Override

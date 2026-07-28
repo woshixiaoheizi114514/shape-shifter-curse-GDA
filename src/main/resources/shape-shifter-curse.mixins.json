@@ -76,7 +76,7 @@
     "AdvancementFixMixin",
     "mob.ScareCreeperMixin",
     "mob.CatEntityMixin",
-    "mob.OcelotEntityMixin"
+    "mob.OcelotEntityMixin",
   ],
   "client": [
     "AdjustItemHoldFeatureRendererMixin",
@@ -110,7 +110,9 @@
     "EntityRendererMixin",
     "render.LivingEntityRendererMixin",
     "render.PlayerEntityRendererMixin",
-    "render.AbstractClientPlayerEntityMixin"
+    "render.AbstractClientPlayerEntityMixin",
+    "extra_logic.MorphScaleRenderRegisterA",
+    "extra_logic.MorphScaleRenderRegisterB"
   ],
   "injectors": {
     "defaultRequire": 1
