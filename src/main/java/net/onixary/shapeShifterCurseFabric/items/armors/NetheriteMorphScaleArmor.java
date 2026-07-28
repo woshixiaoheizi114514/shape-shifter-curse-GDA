@@ -49,12 +49,12 @@ public class NetheriteMorphScaleArmor extends ArmorItem implements GeoItem {
     @Override
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
-            private GeoArmorRenderer<MorphScaleArmor> renderer;
+            private GeoArmorRenderer<NetheriteMorphScaleArmor> renderer;
 
             @Override
-            public @NotNull GeoArmorRenderer<MorphScaleArmor> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, BipedEntityModel<?> original) {
+            public @NotNull GeoArmorRenderer<NetheriteMorphScaleArmor> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, BipedEntityModel<?> original) {
                 if(this.renderer == null) {
-                    this.renderer = new MorphscaleArmorRenderer();
+                    this.renderer = new NetheriteMorphscaleArmorRenderer();
                 }
                 this.renderer.prepForRender(livingEntity, itemStack, equipmentSlot, original);
                 return this.renderer;
