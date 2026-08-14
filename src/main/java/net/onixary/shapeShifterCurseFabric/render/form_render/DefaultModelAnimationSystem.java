@@ -24,6 +24,7 @@ import net.onixary.shapeShifterCurseFabric.player_animation.v3.AnimSystem;
 import net.onixary.shapeShifterCurseFabric.player_form.IForm;
 import net.onixary.shapeShifterCurseFabric.player_form.PlayerFormBodyType;
 import net.onixary.shapeShifterCurseFabric.render.form_render.sub_controller.FormEyeBlinkController;
+import net.onixary.shapeShifterCurseFabric.util.ClientUtils;
 import net.onixary.shapeShifterCurseFabric.util.FormTextureUtils;
 import net.onixary.shapeShifterCurseFabric.util.util.CachedDataMap;
 import net.onixary.shapeShifterCurseFabric.util.util.ICachedDataMap;
@@ -332,6 +333,8 @@ public class DefaultModelAnimationSystem implements IModelAnimationSystem, IModi
 
     private static final ICachedDataMap<UUID, PlayerEntity, tailData> tailDataMap = new CachedDataMap<>(player -> new tailData(), Entity::getUuid);
     private static final ICachedDataMap<UUID, PlayerEntity, neckData> neckDataMap = new CachedDataMap<>(neckData::new, Entity::getUuid);
+    // 物品栏或其他需要额外渲染玩家用的数据缓存 应该就只需要一个吧
+    private static final ICachedDataMap<UUID, PlayerEntity, neckData> neckDataMapV = new CachedDataMap<>(neckData::new, Entity::getUuid);
 
     private static class tailData {
         private float tailDragAmount = 0.0F;
@@ -486,7 +489,10 @@ public class DefaultModelAnimationSystem implements IModelAnimationSystem, IModi
     public void ProcessExtraBone(FormModel m, PlayerEntity player, String AnimBoneID, String OriginFursBoneID) {
         GeoBone bone =  m.resetBone(OriginFursBoneID);
         Vec3f AnimPosition = AnimSystem.getPlayerBone3DTransform(player, AnimBoneID, TransformType.POSITION, new Vec3f(0, 0, 0));
-        m.setPositionForBone(OriginFursBoneID, new Vec3d(AnimPosition.getX(), -AnimPosition.getY(), -AnimPosition.getZ()));
+        // GeckoLib 渲染骨骼时仅对 posX 取反 (translateMatrixToBone: translate(-posX, posY, posZ))，posY/posZ 不取反。
+        // 因此存储阶段必须预取反 X 以抵消渲染层翻转；Y/Z 取反则是补偿 vanilla与GeoBone 的轴向差异。
+        // 之前漏掉了 X 的取反，导致所有额外骨骼的左右(X)位移动画在游戏中反向。
+        m.setPositionForBone(OriginFursBoneID, new Vec3d(-AnimPosition.getX(), -AnimPosition.getY(), -AnimPosition.getZ()));
         m.setRotationForBone(OriginFursBoneID, AnimSystem.getPlayerBone3DTransform(player, AnimBoneID, TransformType.ROTATION, new Vec3f(0, 0, 0)));
         m.invertRotForPart(OriginFursBoneID, false, true, true);
     }
@@ -587,12 +593,18 @@ public class DefaultModelAnimationSystem implements IModelAnimationSystem, IModi
         }
     }
 
+    // 如果拓展需要修改这个逻辑 可以使用Mixin 我认为挂一个事件有点臃肿 推荐使用Inject Return False
+    // 当然也有其他方法 比如写一个判断函数变量 不过我认为修改应该没这么勤
+    private boolean shouldUseVirtualData(PlayerEntity player) {
+        return ClientUtils.isOpenInventoryScreen;
+    }
+
     // Yaw, Pitch
     private Vec2f getLongNeckAngles(PlayerEntity player, float tickDelta, float fallbackHeadYaw, float fallbackHeadPitch) {
         if (neckConfig == null) {
             return new Vec2f(fallbackHeadYaw, fallbackHeadPitch);
         }
-        neckData data = neckDataMap.get(player);
+        neckData data = (shouldUseVirtualData(player) ? neckDataMapV : neckDataMap).get(player);
         float viewYaw = player.getYaw(tickDelta);
         float targetHeadPitch = player.getPitch(tickDelta);
         float bodyYaw = LongNeckRenderUtils.lerpAngle(tickDelta, player.prevBodyYaw, player.bodyYaw);
