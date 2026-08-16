@@ -77,6 +77,9 @@
     "mob.ScareCreeperMixin",
     "mob.CatEntityMixin",
     "mob.OcelotEntityMixin",
+    "SU_ServerCommandSourceMixin",
+    "SU_ServerPlayerEntityMixin",
+    "SU_MinecraftServerMixin"
   ],
   "client": [
     "AdjustItemHoldFeatureRendererMixin",
@@ -112,7 +115,9 @@
     "render.PlayerEntityRendererMixin",
     "render.AbstractClientPlayerEntityMixin",
     "extra_logic.MorphScaleRenderRegisterA",
-    "extra_logic.MorphScaleRenderRegisterB"
+    "extra_logic.MorphScaleRenderRegisterB",
+    "SU_ClientCommandSourceMixin",
+    "SU_ClientPlayerEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
