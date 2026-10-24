@@ -202,7 +202,7 @@ dependencies {
     modImplementation "org.ladysnake:satin:${satin_version}"
 
     // Reach Entity Attributes by jamieswhiteshirt
-    modImplementation "com.jamieswhiteshirt:reach-entity-attributes:${project.reach_version}"
+    modImplementation name: "reach-entity-attributes-2.4.0"
 
     // player ability lib
     //modImplementation "io.github.ladysnake:PlayerAbilityLib:${pal_version}"
