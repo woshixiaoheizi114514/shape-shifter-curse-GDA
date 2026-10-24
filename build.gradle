@@ -152,6 +152,7 @@ repositories {
         
 	flatDir {
 		dir 'libs'
+	  }
     }
 
     mavenLocal()
